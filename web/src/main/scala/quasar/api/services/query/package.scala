@@ -38,6 +38,7 @@ package object query {
   object QueryParam extends QueryParamDecoderMatcher[Query]("q")
 
   def queryParam(params: Map[String, scala.collection.Seq[String]]): ApiError \/ Query =
+    // TODO[jr]: remove if
     params.get("q") flatMap (_.toList.toNel) match {
       case Some(xs) if xs.tail.isEmpty =>
         Query(xs.head).right

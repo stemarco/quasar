@@ -22,9 +22,7 @@ import quasar.fs._
 import quasar.physical.mongodb._
 
 import pathy.Path._
-import scalaz._
-import scalaz.syntax.monad._
-import scalaz.syntax.monadError._
+import scalaz._, Scalaz._
 
 object fsops {
   type MongoFsM[A]  = FileSystemErrT[MongoDbIO, A]
@@ -43,7 +41,7 @@ object fsops {
       cs     <- MongoDbIO.collectionsIn(dbName)
                   .filter(_.collectionName startsWith cName)
                   .runLog.map(_.toVector).liftM[FileSystemErrT]
-      _      <- if (cs.isEmpty) pathErr(pathNotFound(dir)).raiseError[MongoE, Unit]
+      _      <- if (cs.isEmpty) pathErr(pathNotFound(dir)).raiseError[MongoFsM, Unit]
                 else ().point[MongoFsM]
     } yield cs
 
@@ -75,5 +73,5 @@ object fsops {
     */
   def nonExistentParent[A](dir: ADir): MongoFsM[A] =
     pathErr(invalidPath(dir, "directory refers to nonexistent parent"))
-      .raiseError[MongoE, A]
+      .raiseError[MongoFsM, A]
 }

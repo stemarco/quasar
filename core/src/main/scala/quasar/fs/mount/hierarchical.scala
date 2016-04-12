@@ -135,6 +135,7 @@ object hierarchical {
 
     type M[A] = Free[S, A]
     type ME[A, B] = EitherT[M, A, B]
+    type MES[A] = ME[FileSystemError, A]
 
     val mountedMfs = mfs mapWithDir { case (d, f) =>
       f compose mounted.manageFile[ManageFileF](d)
@@ -165,7 +166,7 @@ object hierarchical {
               pathErr(invalidPath(
                 scn.dst,
                 s"must refer to the same filesystem as '${posixCodec.printPath(scn.src)}'"
-              )).raiseError[ME, Unit]
+              )).raiseError[MES, Unit]
           }.run
 
         case Delete(path) =>
@@ -325,7 +326,7 @@ object hierarchical {
     type F[A] = State[Option[MntA], A]
     type M[A] = FileSystemErrT[F, A]
 
-    val F = MonadState[State, Option[MntA]]
+    val F = MonadState[F, Option[MntA]]
 
     def lookupMnt(p: APath): FileSystemError \/ MntA =
       lookupMounted(mounts, p) toRightDisjunction pathErr(pathNotFound(p))

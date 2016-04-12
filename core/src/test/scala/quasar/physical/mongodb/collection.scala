@@ -16,6 +16,7 @@
 
 package quasar.physical.mongodb
 
+import org.specs2.execute.Result
 import quasar.Predef._
 import quasar.fs.SpecialStr
 
@@ -140,7 +141,7 @@ class CollectionSpec extends Specification with ScalaCheck with DisjunctionMatch
         Collection.fromPath(f).fold(
           err => scala.sys.error(err.toString),
           coll => {
-            " ./\\*<>:|?".foreach { c => coll.databaseName.toList must not(contain(c)) }
+            Result.foreach(" ./\\*<>:|?") { c => coll.databaseName.toList must not(contain(c)) }
           })
       }
     }.set(maxSize = 5)
@@ -153,7 +154,7 @@ class CollectionSpec extends Specification with ScalaCheck with DisjunctionMatch
           err  => scala.sys.error(err.toString),
           coll => identicalPath(f.path, coll.asFile) must beTrue)
       }
-    }
+    }.set(maxDiscardRatio = 100.0f)
   }
 
   "Collection.asFile" should {

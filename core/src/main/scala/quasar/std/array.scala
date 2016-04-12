@@ -29,7 +29,7 @@ trait ArrayLib extends Library {
     noSimplification,
     partialTyperV {
       case _ :: Type.Const(Data.Int(dim)) :: Nil if (dim < 1) =>
-        failure(nel(GenericError("array dimension out of range"), Nil))
+        failure(nel(GenericError("array dimension out of range"), IList.empty))
       case Type.Const(Data.Arr(arr)) :: Type.Const(Data.Int(i)) :: Nil
           if (i == 1) =>
         // TODO: we should support dims other than 1, but it's work

@@ -21,7 +21,7 @@ import quasar.{Data, Func, LogicalPlan, Type, Mapping, SemanticError}, LogicalPl
 import quasar.fp._
 
 import matryoshka._
-import scalaz._, Scalaz._, NonEmptyList.nel, Validation.{success, failure}
+import scalaz._, Scalaz._, Validation.{success, failureNel}
 
 trait StringLib extends Library {
   private def stringApply(f: (String, String) => String): Func.Typer =
@@ -110,7 +110,9 @@ trait StringLib extends Library {
       case Type.Const(Data.Str(str)) :: Type.Const(Data.Str(pattern)) :: Type.Const(Data.Bool(insen)) :: Nil =>
         success(Type.Const(Data.Bool(matchAnywhere(str, pattern, insen))))
       case strT :: patternT :: insenT :: Nil =>
-        (Type.typecheck(Type.Str, strT) |@| Type.typecheck(Type.Str, patternT) |@| Type.typecheck(Type.Bool, insenT))((_, _, _) => Type.Bool)
+        (Type.typecheck(Type.Str, strT).leftMap(nel => nel.map(ι[SemanticError])) |@|
+         Type.typecheck(Type.Str, patternT).leftMap(nel => nel.map(ι[SemanticError])) |@|
+         Type.typecheck(Type.Bool, insenT).leftMap(nel => nel.map(ι[SemanticError])))((_, _, _) => Type.Bool)
     },
     basicUntyper)
 
@@ -193,8 +195,8 @@ trait StringLib extends Library {
       case List(Type.Str, Type.Int,                Type.Int)                =>
         success(Type.Str)
       case List(Type.Str, _,                       _)                       =>
-        failure(nel(GenericError("expected integer arguments for SUBSTRING"), Nil))
-      case List(t, _, _) => failure(nel(TypeError(Type.Str, t, None), Nil))
+        failureNel(GenericError("expected integer arguments for SUBSTRING"))
+      case List(t, _, _) => failureNel(TypeError(Type.Str, t, None))
     },
     basicUntyper)
 

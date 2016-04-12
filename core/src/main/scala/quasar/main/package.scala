@@ -43,7 +43,7 @@ package object main {
   type MainErrT[F[_], A] = EitherT[F, String, A]
   type MainTask[A]       = MainErrT[Task, A]
 
-  val MainTask           = MonadError[EitherT[Task,?,?], String]
+  val MainTask           = MonadError[EitherT[Task,String,?], String]
 
   /** Effects that physical filesystems require.
     *

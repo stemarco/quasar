@@ -158,7 +158,7 @@ object KeyValueStore {
       new Aux[F]
 
     final class Aux[F[_, _]] {
-      def apply[K, V, S](l: Lens[S, Map[K, V]])(implicit F: MonadState[F, S])
+      def apply[K, V, S](l: Lens[S, Map[K, V]])(implicit F: MonadState[F[S,?], S])
                         : KeyValueStore[K, V, ?] ~> F[S, ?] =
         new(KeyValueStore[K, V, ?] ~> F[S, ?]) {
           def apply[A](fa: KeyValueStore[K, V, A]): F[S, A] = fa match {

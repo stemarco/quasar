@@ -75,7 +75,7 @@ object MonotonicSeq {
       new Aux[F]
 
     final class Aux[F[_, _]] {
-      def apply[S](l: Lens[S, Long])(implicit F: MonadState[F, S])
+      def apply[S](l: Lens[S, Long])(implicit F: MonadState[F[S,?], S])
                   : MonotonicSeq ~> F[S, ?] =
         new (MonotonicSeq ~> F[S, ?]) {
           def apply[A](seq: MonotonicSeq[A]) = seq match {

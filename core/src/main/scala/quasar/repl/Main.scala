@@ -74,7 +74,7 @@ object Main {
           case Command.Exit =>
             console.stop()
           case _            =>
-            f(command).foldMap(i).run.run.valueOr(
+            f(command).foldMap(i).run.unsafePerformSync.valueOr(
               err => console.getShell.out.println("Quasar error: " + err))
         }
         0
@@ -145,7 +145,7 @@ object Main {
       _            <- EitherT.right(driver(r))
     } yield ()
 
-    logErrors(main0).run
+    logErrors(main0).unsafePerformSync
   }
 
 }

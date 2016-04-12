@@ -184,11 +184,9 @@ trait SemanticAnalysis {
             case JoinRelation(l, r, _, _) => for {
               rels <- findRelations(l) tuple findRelations(r)
               (left, right) = rels
-              rez <- (left.keySet intersect right.keySet).toList match {
-                case Nil           => success(left ++ right)
-                case con :: flicts =>
-                  failure(NonEmptyList.nel(con, flicts).map(DuplicateRelationName(_)))
-              }
+              rez <- (left.keySet intersect right.keySet).toList.toNel.cata(
+                nel => failure(nel.map(DuplicateRelationName(_):SemanticError)),
+                success(left ++ right))
             } yield rez
           }
 

@@ -54,6 +54,7 @@ class FileSystemMounterSpec extends mutable.Specification {
     new (EffM ~> EffR) {
       type MT[F[_], A] = EitherT[F, String, A]
       type M[A]        = MT[ResMntsS, A]
+      import EitherT.eitherTMonad
 
       val evalAbort: AbortF ~> M =
         Coyoneda.liftTF[Abort, M](Failure.toError[ResMntsSE, String])

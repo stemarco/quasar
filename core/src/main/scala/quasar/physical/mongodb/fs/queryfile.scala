@@ -166,7 +166,7 @@ private final class QueryFileInterpreter[C](
     WorkflowExecErrT[ReaderT[SeqNameGeneratorT[JavaScriptLog,?],String,?], A]
 
   private val queryR =
-    MonadReader[R, (Option[DefaultDb], TaskRef[EvalState[C]])]
+    MonadReader[R[(Option[DefaultDb], TaskRef[EvalState[C]]), ?], (Option[DefaultDb], TaskRef[EvalState[C]])]
 
   private def MongoQuery[A](f: TaskRef[EvalState[C]] => Task[A]): MQ[A] =
     queryR.ask flatMapK { case (_, ref) => MongoDbIO.liftTask(f(ref)) }

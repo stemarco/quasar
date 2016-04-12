@@ -70,7 +70,7 @@ object Failure {
 
     private val attemptE: ErrF ~> G = {
       val g: Err ~> G = new (Err ~> G) {
-        val err = MonadError[GE, E]
+        val err = MonadError[G, E]
         def apply[A](ea: Err[A]) = ea match {
           case Fail(e) => err.raiseError[A](e)
         }
@@ -99,7 +99,7 @@ object Failure {
       }
     }
 
-  def toError[F[_, _], E](implicit F: MonadError[F, E]): Failure[E, ?] ~> F[E, ?] =
+  def toError[F[_, _], E](implicit F: MonadError[F[E,?], E]): Failure[E, ?] ~> F[E, ?] =
     new (Failure[E, ?] ~> F[E, ?]) {
       def apply[A](fa: Failure[E, A]) = fa match {
         case Fail(e) => F.raiseError(e)
