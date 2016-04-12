@@ -9,7 +9,7 @@ object Dependencies {
   private val slcVersion     = "0.4"
   private val monocleVersion = "1.1.1"
   private val pathyVersion   = "0.2.0-SNAPSHOT"
-  private val http4sVersion  = "0.13.1a"
+  private val http4sVersion  = "0.13.2a-SNAPSHOT"
   private val mongoVersion   = "3.2.1"
   private val nettyVersion   = "4.0.26.Final"
   private val refinedVersion = "0.3.7"
@@ -47,15 +47,12 @@ object Dependencies {
     "eu.timepit"        %% "refined-scalacheck"        % refinedVersion           % "test")
 
   val web = Seq(
-    "org.http4s"           %% "http4s-dsl"          % http4sVersion % "compile, test",
-    "org.http4s"           %% "http4s-argonaut"     % http4sVersion % "compile, test"
-      // TODO: remove once jawn-streamz is in agreement with http4s on
-      //       scalaz-stream version
-      exclude("org.scalaz.stream", "scalaz-stream_2.11"),
+    "org.http4s"           %% "http4s-dsl"            % http4sVersion % "compile, test",
+    "org.http4s"           %% "http4s-argonaut"       % http4sVersion % "compile, test",
     "org.http4s"           %% "http4s-blaze-server"   % http4sVersion  % "compile, test",
     "org.http4s"           %% "http4s-blaze-client"   % http4sVersion  % "test",
     "org.scodec"           %% "scodec-scalaz"         % "1.1.0",
     "ch.qos.logback"       %  "logback-classic"       % "1.1.3",
     "com.propensive"       %% "rapture-json"          % raptureVersion % "test",
-    "com.propensive"       %% "rapture-json-json4s"        % raptureVersion % "test")
+    "com.propensive"       %% "rapture-json-json4s"   % raptureVersion % "test")
 }

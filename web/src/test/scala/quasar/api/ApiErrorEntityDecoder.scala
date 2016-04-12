@@ -21,6 +21,7 @@ import quasar.Predef._
 import argonaut._, Argonaut._
 import argonaut.ArgonautScalaz._
 import org.http4s.{DecodeResult => _, _}
+import org.http4s.argonaut._
 import scalaz._, Scalaz._
 import scalaz.concurrent.Task
 
@@ -28,9 +29,7 @@ object ApiErrorEntityDecoder {
   implicit val apiErrorEntityDecoder: EntityDecoder[ApiError] =
     EntityDecoder.decodeBy(MediaType.`application/json`) {
       case res @ Response(status, _, _, _, _) =>
-        // TODO[http4s]: Use Json EntityDecoder once bug is fixed in http4s
-        res.attemptAs[String] flatMap { string =>
-          val json = Parse.parseOption(string).get
+        res.attemptAs[Json] flatMap { json =>
           EitherT.fromDisjunction[Task](fromJson(status, json.hcursor).toEither.disjunction)
             .leftMap { case (msg, _) => InvalidMessageBodyFailure(
               s"Failed to decode JSON as an ApiError. JSON: $json, reason: $msg")

@@ -108,8 +108,7 @@ class MetadataServiceSpec extends Specification with ScalaCheck with FileSystemF
         val childNodes = s.ls.map(FsNode(_, None))
 
         service(s.state, Map())(Request(uri = pathUri(s.dir)))
-          // TODO[http4s]: Use Json EntityDecoder once bug is fixed in http4s
-          .as[String].map(Parse.parse(_).right.get).unsafePerformSync must_== Json("children" := childNodes.sorted)
+          .as[Json].unsafePerformSync must_== Json("children" := childNodes.sorted)
       }
 
       "and mounts when any children happen to be mount points" ! prop { (
@@ -131,8 +130,7 @@ class MetadataServiceSpec extends Specification with ScalaCheck with FileSystemF
           (parent </> dir(mName.value) </> file("bar"), Vector()))
 
         service(mem, mnts)(Request(uri = pathUri(parent)))
-          // TODO[http4s]: Use Json EntityDecoder once bug is fixed in http4s
-          .as[String].map(Parse.parse(_).right.get).unsafePerformSync must_== Json("children" := List(
+          .as[Json].unsafePerformSync must_=== Json("children" := List(
             FsNode(fName.value, "file", None),
             FsNode(dName.value, "directory", None),
             FsNode(vName.value, "file", Some("view")),
@@ -142,7 +140,7 @@ class MetadataServiceSpec extends Specification with ScalaCheck with FileSystemF
 
       "and empty object for existing file" ! prop { s: SingleFileMemState =>
         service(s.state, Map())(Request(uri = pathUri(s.file)))
-          .as[Json].unsafePerformSync must_== Json.obj()
+          .as[Json].unsafePerformSync must_=== Json.obj()
       }
     }
   }
