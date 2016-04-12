@@ -36,7 +36,6 @@ class HierarchicalFileSystemSpec extends mutable.Specification with FileSystemFi
   import InMemory.InMemState, FileSystemError._, PathError._
   import hierarchical.{MountedResultH, MountedResultHF}
   import ManageFile.MoveSemantics, QueryFile.ResultHandle, LogicalPlan._
-  import EitherT.eitherTMonad
 
   val transforms = QueryFile.Transforms[F]
   val unsafeq = QueryFile.Unsafe[FileSystem]

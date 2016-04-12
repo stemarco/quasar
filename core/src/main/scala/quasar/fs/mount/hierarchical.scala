@@ -353,7 +353,7 @@ object hierarchical {
         // Documentation on `QueryFile` guarantees absolute paths, so calling `mkAbsolute`
         case ReadF(p) => mountFor(mkAbsolute(rootDir, p))
         case _        => ().point[M]
-      }.run.run(initMnt) match {
+      }(implicitly,Monad.monadMTMAB).run.run(initMnt) match {
         // NB: If mnt is empty, then there were no `ReadF`, so we should
         // be able to get a result without needing an actual filesystem,
         // and we just pass it to an arbitrary mount, if there is at

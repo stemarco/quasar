@@ -254,9 +254,11 @@ private final class QueryFileInterpreter[C](
     EitherT(logProgram(stmts) as r.leftMap(wfErrToFsErr(lp))).void
   }
 
-  private def logProgram(prog: JavaScriptPrg): MongoLogWF[Unit] =
-    MonadTell[W, PhaseResults].tell(Vector(
+  private def logProgram(prog: JavaScriptPrg): MongoLogWF[Unit] = {
+    type WPhaseResults[A] = W[PhaseResults,A]
+    MonadTell[WPhaseResults, PhaseResults].tell(Vector(
       PhaseResult.Detail("MongoDB", Js.Stmts(prog.toList).pprint(0))))
+  }
 
   private def checkPathsExist(lp: Fix[LogicalPlan]): MongoLogWFR[Unit] = {
     // Documentation on `QueryFile` guarantees absolute paths, so calling `mkAbsolute`
