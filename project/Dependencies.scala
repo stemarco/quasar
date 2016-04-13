@@ -8,7 +8,7 @@ object Dependencies {
   private val scalazVersion  = "7.2.1"
   private val slcVersion     = "0.4"
   private val monocleVersion = "1.1.1"
-  private val pathyVersion   = "0.2.0-SNAPSHOT"
+  private val pathyVersion   = "0.2.0"
   private val http4sVersion  = "0.13.2a-SNAPSHOT"
   private val mongoVersion   = "3.2.1"
   private val nettyVersion   = "4.0.26.Final"
@@ -32,7 +32,7 @@ object Dependencies {
     "io.argonaut"       %% "argonaut-scalaz"           % "6.2-M1"                 % "compile, test",
     "org.jboss.aesh"    %  "aesh"                      % "0.55"                   % "compile, test",
     "org.typelevel"     %% "shapeless-scalaz"          % slcVersion               % "compile, test",
-    "com.slamdata"      %% "matryoshka-core"           % "0.9.1-SNAPSHOT"         % "compile",
+    "com.slamdata"      %% "matryoshka-core"           % "0.9.0"                  % "compile",
     "com.slamdata"      %% "pathy-core"                % pathyVersion             % "compile",
     "com.github.mpilquist" %% "simulacrum"             % "0.7.0"                  % "compile, test",
     "org.http4s"        %% "http4s-core"               % http4sVersion            % "compile",
