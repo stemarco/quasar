@@ -80,8 +80,6 @@ object managefile {
 
   ////
 
-  private type R[S, A] = Kleisli[MongoDbIO, S, A]
-
   private val moveToRename: MoveSemantics => RenameSemantics = {
     case MoveSemantics.Overwrite     => RenameSemantics.Overwrite
     case MoveSemantics.FailIfExists  => RenameSemantics.FailIfExists
@@ -194,7 +192,7 @@ object managefile {
 
   private def freshName: MongoManage[String] =
     for {
-      in <- MonadReader[R[ManageIn,?], ManageIn].ask
+      in <- MonadReader[MongoManage, ManageIn].ask
       (prefix, ref) = in
       n  <- liftTask(ref.modifyS(i => (i + 1, i))).liftM[ManageInT]
     } yield prefix.run + n

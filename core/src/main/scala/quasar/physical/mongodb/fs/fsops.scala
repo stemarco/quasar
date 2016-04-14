@@ -26,7 +26,6 @@ import scalaz._, Scalaz._
 
 object fsops {
   type MongoFsM[A]  = FileSystemErrT[MongoDbIO, A]
-  type MongoE[A, B] = EitherT[MongoDbIO, A, B]
 
   import FileSystemError._, PathError._
 

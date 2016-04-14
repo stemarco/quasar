@@ -235,11 +235,10 @@ object MessageFormat {
     }
   }
 
-  def fromAccept(accept: Option[Accept]): MessageFormat = {
+  def fromAccept(accept: Option[Accept]): MessageFormat =
     // TODO: MediaRange needs an Order instance – combining QValue ordering
     //       with specificity (EG, application/json sorts before
     //       application/* if they have the same q-value).
     accept.flatMap(_.values.sortBy(_.qValue).list.map(_.mediaRange).map(fromMediaType).flatten(Option.option2Iterable).lastOption)
       .getOrElse(MessageFormat.Default)
-  }
 }

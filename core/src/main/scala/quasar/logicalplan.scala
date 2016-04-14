@@ -287,7 +287,7 @@ object LogicalPlan {
         args0 <- types.align(args).traverseU(_.onlyBoth match {
           case Some((t, arg)) => inferTypes(t, arg).disjunction
           case None =>
-            (SemanticError.WrongArgumentCount(func, types.length, args.length): SemanticError)
+            (SemanticError.wrongArgumentCount(func, types.length, args.length))
               .wrapNel.left
         }).validation
       } yield InvokeF[Typed[LogicalPlan]](func, args0)
@@ -330,7 +330,7 @@ object LogicalPlan {
       emitName(freshName("check").map(name =>
         ConstrainedPlan(inf, List(NamedConstraint(name, inf, term)), Free(name))))
     }
-    else lift((SemanticError.GenericError(s"couldn’t unify inferred (${inf}) and possible (${poss}) types in $term"): SemanticError).wrapNel.left)
+    else lift((SemanticError.genericError(s"couldn’t unify inferred (${inf}) and possible (${poss}) types in $term")).wrapNel.left)
   }
 
   private def appConst(constraints: ConstrainedPlan, fallback: Fix[LogicalPlan]) =

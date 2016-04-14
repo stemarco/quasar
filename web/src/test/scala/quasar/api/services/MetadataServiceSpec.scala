@@ -55,7 +55,7 @@ object MetadataFixture {
     new (Mounting ~> Task) {
       type F[A] = State[Map[APath, MountConfig], A]
       val mntr = Mounter.trivial[MountConfigsF]
-      val kvf = KeyValueStore.toState[State](Lens.id[Map[APath, MountConfig]])
+      val kvf = KeyValueStore.toState[F](Lens.id[Map[APath, MountConfig]])
       def apply[A](ma: Mounting[A]) =
         Task.now(mntr(ma).foldMap(Coyoneda.liftTF[MountConfigs, F](kvf)).eval(mnts))
     }

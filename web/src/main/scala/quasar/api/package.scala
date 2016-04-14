@@ -52,7 +52,7 @@ package object api {
 
     joinResponseOr.compose[Failure[E, ?]](
       convertError[Task](errToResp).compose[Failure[E, ?]](
-        Failure.toError[ETask, E]))
+        Failure.toError[ETask[E,?], E]))
   }
 
   /** Sequences the `Response` on the left with the outer `Task`. */

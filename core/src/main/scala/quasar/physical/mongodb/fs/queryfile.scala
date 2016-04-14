@@ -159,14 +159,11 @@ private final class QueryFileInterpreter[C](
   private type MongoLogWF[A]  = PhaseResultT[MQ, A]
   private type MongoLogWFR[A] = FileSystemErrT[MongoLogWF, A]
 
-  private type W[A, B]   = WriterT[MQ, A, B]
-  private type R[A, B]   = ReaderT[MongoDbIO, A, B]
-
   private type JsR[A] =
     WorkflowExecErrT[ReaderT[SeqNameGeneratorT[JavaScriptLog,?],String,?], A]
 
   private val queryR =
-    MonadReader[R[(Option[DefaultDb], TaskRef[EvalState[C]]), ?], (Option[DefaultDb], TaskRef[EvalState[C]])]
+    MonadReader[MQ, (Option[DefaultDb], TaskRef[EvalState[C]])]
 
   private def MongoQuery[A](f: TaskRef[EvalState[C]] => Task[A]): MQ[A] =
     queryR.ask flatMapK { case (_, ref) => MongoDbIO.liftTask(f(ref)) }
@@ -254,11 +251,9 @@ private final class QueryFileInterpreter[C](
     EitherT(logProgram(stmts) as r.leftMap(wfErrToFsErr(lp))).void
   }
 
-  private def logProgram(prog: JavaScriptPrg): MongoLogWF[Unit] = {
-    type WPhaseResults[A] = W[PhaseResults,A]
-    MonadTell[WPhaseResults, PhaseResults].tell(Vector(
+  private def logProgram(prog: JavaScriptPrg): MongoLogWF[Unit] =
+    MonadTell[MongoLogWF, PhaseResults].tell(Vector(
       PhaseResult.Detail("MongoDB", Js.Stmts(prog.toList).pprint(0))))
-  }
 
   private def checkPathsExist(lp: Fix[LogicalPlan]): MongoLogWFR[Unit] = {
     // Documentation on `QueryFile` guarantees absolute paths, so calling `mkAbsolute`

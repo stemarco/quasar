@@ -23,6 +23,7 @@ import quasar.fs.prettyPrint
 import scala.AnyRef
 
 import matryoshka._, Recursive.ops._
+import monocle._
 import pathy.Path, Path._
 import scalaz._, Scalaz._, Validation.{success, failure}
 import shapeless.contrib.scalaz._
@@ -91,6 +92,19 @@ object SemanticError {
   final case class InvalidPathError(path: Path[_, File, _], hint: Option[String]) extends SemanticError {
     def message = "Invalid path: " + posixCodec.unsafePrintPath(path) + hint.map(" (" + _ + ")").getOrElse("")
   }
+
+  // TODO: Add other prisms when necessary (unless we enable the "No Any" wart first)
+  val genericError: Prism[SemanticError, String] =
+    Prism[SemanticError, String] {
+      case GenericError(msg) => Some(msg)
+      case _ => None
+    } (GenericError(_))
+
+  val wrongArgumentCount: Prism[SemanticError, (Func, Int, Int)] =
+    Prism[SemanticError, (Func, Int, Int)] {
+      case WrongArgumentCount(func, expected, actual) => Some((func, expected, actual))
+      case _ => None
+    } ((WrongArgumentCount(_,_,_)).tupled)
 }
 
 trait SemanticAnalysis {

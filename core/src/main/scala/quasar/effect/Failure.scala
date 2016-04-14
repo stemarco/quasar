@@ -99,8 +99,8 @@ object Failure {
       }
     }
 
-  def toError[F[_, _], E](implicit F: MonadError[F[E,?], E]): Failure[E, ?] ~> F[E, ?] =
-    new (Failure[E, ?] ~> F[E, ?]) {
+  def toError[F[_], E](implicit F: MonadError[F, E]): Failure[E, ?] ~> F =
+    new (Failure[E, ?] ~> F) {
       def apply[A](fa: Failure[E, A]) = fa match {
         case Fail(e) => F.raiseError(e)
       }

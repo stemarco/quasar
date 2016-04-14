@@ -60,7 +60,7 @@ class MountServiceSpec extends Specification with ScalaCheck with Http4s with Pa
   def runTest[R: org.specs2.execute.AsResult](f: HttpSvc => M.F[R]): R = {
     type MEff[A] = Coproduct[Task, MountConfigsF, A]
 
-    TaskRef(Map[APath, MountConfig]()).map { ref =>
+    TaskRef(Map[APath, MountConfig]()).flatMap { ref =>
 
       val mounter: Mounting ~> Free[MEff, ?] = Mounter[Task, MEff](
         {
@@ -87,7 +87,7 @@ class MountServiceSpec extends Specification with ScalaCheck with Http4s with Pa
       val service = mount.service[Eff].toHttpService(liftMT[Task, ResponseT] compose eff)
 
       f(service.run andThen (free.lift(_).into[Eff])).foldMap(eff)
-    }.unsafePerformSync.unsafePerformSync
+    }.unsafePerformSync
   }
 
   def orFail[A](v: MountingError \/ A): Task[A] =

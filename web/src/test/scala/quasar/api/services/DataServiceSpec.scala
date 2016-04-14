@@ -510,7 +510,7 @@ class DataServiceSpec extends Specification with ScalaCheck with FileSystemFixtu
             "srcPath" := fs.file,
             "dstPath" := dir),
           newState = Unchanged)
-      }.set(minTestsOk = 300)
+      }
       "be 201 with file" ! prop {(fs: SingleFileMemState, file: AFile) =>
         (fs.file ≠ file) ==>
           testMove(

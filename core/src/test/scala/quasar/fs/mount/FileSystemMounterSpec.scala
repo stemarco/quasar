@@ -57,10 +57,10 @@ class FileSystemMounterSpec extends mutable.Specification {
       import EitherT.eitherTMonad
 
       val evalAbort: AbortF ~> M =
-        Coyoneda.liftTF[Abort, M](Failure.toError[ResMntsSE, String])
+        Coyoneda.liftTF[Abort, M](Failure.toError[M, String])
 
       val evalMnts: MountedFsF ~> ResMntsS =
-        Coyoneda.liftTF[MountedFs, ResMntsS](AtomicRef.toState[State, ResMnts])
+        Coyoneda.liftTF[MountedFs, ResMntsS](AtomicRef.toState[ResMntsS, ResMnts])
 
       val evalEff: Eff ~> M =
         free.interpret3[AbortM, AbortF, MountedFsF, M](

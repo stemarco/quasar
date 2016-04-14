@@ -198,7 +198,7 @@ package object main {
       type ST[A] = StateT[Task, Map[APath, MountConfig], A]
 
       val toState: MountConfigs ~> ST =
-        KeyValueStore.toState[StateT[Task, ?, ?]](Lens.id[Map[APath, MountConfig]])
+        KeyValueStore.toState[ST](Lens.id[Map[APath, MountConfig]])
 
       val interpret: MntCfgsIO ~> ST =
         free.interpret2[MountConfigsF, Task, ST](

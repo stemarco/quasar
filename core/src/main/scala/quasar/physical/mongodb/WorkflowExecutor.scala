@@ -81,7 +81,6 @@ private[mongodb] abstract class WorkflowExecutor[F[_]: Monad, C] {
 
   type G0[A]  = SeqNameGeneratorT[F, A]
   type G[A]   = ReaderT[G0, String, A]
-  type E[A,B] = EitherT[G, A, B]
   type M[A]   = WorkflowExecErrT[G, A]
 
   import WorkflowExecutionError._
@@ -352,7 +351,6 @@ object WorkflowExecutor {
     import MongoDbIOWorkflowExecutor._
     import EnvironmentError._
 
-    type E[A, B] = EitherT[MongoDbIO, A, B]
     type M[A]    = EnvErrT[MongoDbIO, A]
     type WFExec  = WorkflowExecutor[MongoDbIO, BsonCursor]
 

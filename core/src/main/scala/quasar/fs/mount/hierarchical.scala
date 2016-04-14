@@ -134,8 +134,7 @@ object hierarchical {
     import ManageFile._
 
     type M[A] = Free[S, A]
-    type ME[A, B] = EitherT[M, A, B]
-    type MES[A] = ME[FileSystemError, A]
+    type MES[A] = EitherT[M, FileSystemError, A]
 
     val mountedMfs = mfs mapWithDir { case (d, f) =>
       f compose mounted.manageFile[ManageFileF](d)

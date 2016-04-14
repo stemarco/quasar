@@ -23,6 +23,7 @@ import quasar.fs.SpecialStr
 import org.specs2.mutable._
 import org.specs2.scalaz._
 import org.specs2.ScalaCheck
+import org.scalacheck.Gen
 import pathy.Path._
 import pathy.scalacheck._
 
@@ -154,7 +155,7 @@ class CollectionSpec extends Specification with ScalaCheck with DisjunctionMatch
           err  => scala.sys.error(err.toString),
           coll => identicalPath(f.path, coll.asFile) must beTrue)
       }
-    }.set(maxDiscardRatio = 100.0f)
+    }.setGen(Gen.resize(120,PathOf.absFileOfArbitrary[SpecialStr].arbitrary))
   }
 
   "Collection.asFile" should {

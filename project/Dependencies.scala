@@ -9,7 +9,7 @@ object Dependencies {
   private val slcVersion     = "0.4"
   private val monocleVersion = "1.1.1"
   private val pathyVersion   = "0.2.0"
-  private val http4sVersion  = "0.13.2a-SNAPSHOT"
+  private val http4sVersion  = "0.13.2a"
   private val mongoVersion   = "3.2.1"
   private val nettyVersion   = "4.0.26.Final"
   private val refinedVersion = "0.3.7"

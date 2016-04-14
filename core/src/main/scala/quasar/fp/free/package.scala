@@ -103,7 +103,7 @@ package object free {
       private val injFT: Task ~> G = injectFT[Task, S]
       private val lftFT: S ~> G = liftFT[S]
 
-      def attempt[A](fa: Free[S, A]): Free[S, Throwable \/ A] = {
+      def attempt[A](fa: Free[S, A]): Free[S, Throwable \/ A] =
         injFT(Task.delay(fa.resume match {
           case \/-(a) =>
             a.right[Throwable].point[G]
@@ -122,7 +122,6 @@ package object free {
           case \/-(a) => a
           case -\/(t) => t.left[A].point[G]
         }).join
-      }
 
       def fail[A](t: Throwable): Free[S, A] =
         injFT(Task.fail(t))
