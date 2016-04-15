@@ -25,7 +25,7 @@ import quasar.jscore, jscore.{JsCore, JsFn}
 import quasar.physical.mongodb.workflowtask._
 
 import matryoshka._, Recursive.ops._, FunctorT.ops._
-import monocle.syntax._
+import monocle.syntax.all._
 import scalaz._, Scalaz._
 import shapeless.contrib.scalaz._
 

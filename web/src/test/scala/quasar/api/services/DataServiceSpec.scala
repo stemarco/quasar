@@ -26,9 +26,8 @@ import quasar.api.MessageFormatGen._
 import quasar.api.matchers._
 import quasar.fs._
 import quasar.fs.PathArbitrary._
-import quasar.fp.{evalNT, free, liftMT}
+import quasar.fp._
 import quasar.fp.numeric._
-import quasar.fp.prism._
 import quasar.fp.PathyCodecJson._
 
 import argonaut.Json
@@ -36,6 +35,7 @@ import argonaut.Argonaut._
 import org.http4s._
 import org.http4s.headers._
 import org.http4s.server.middleware.GZip
+import org.scalacheck.Arbitrary
 import org.specs2.specification.core.Fragments
 import org.specs2.execute.AsResult
 import org.specs2.matcher.MatchResult
@@ -272,7 +272,7 @@ class DataServiceSpec extends Specification with ScalaCheck with FileSystemFixtu
         response.status must_== Status.Ok
         response.contentType must_== Some(`Content-Type`(MediaType.`application/zip`))
         response.headers.get(`Content-Disposition`) must_== Some(disposition)
-      }.set(minTestsOk = 1, maxDiscardRatio = 100.0f) // This test is relatively slow TODO[scalacheck]: Remove maxDiscardRatio once upgrade to 0.13.0 as it should no longer be necessary
+      }.set(minTestsOk = 1).setGen(Arbitrary.arbitrary[NonEmptyDir].retryUntil(κ(true))) // This test is relatively slow TODO[scalacheck]: Remove retryUnit once upgrade to 0.13.0 as it should no longer be necessary
       "what happens if user specifies a Path that is a directory but without the appropriate headers?" >> todo
     }
     "POST and PUT" >> {
