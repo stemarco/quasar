@@ -109,7 +109,7 @@ object KeyValueStore {
     */
   def fromTaskRef[K, V](ref: TaskRef[Map[K, V]]): KeyValueStore[K, V, ?] ~> Task =
     new (KeyValueStore[K, V, ?] ~> Task) {
-        val toST = toState[State[Map[K,V],?]](Lens.id[Map[K,V]])
+      val toST = toState[State[Map[K,V],?]](Lens.id[Map[K,V]])
       def apply[C](fa: KeyValueStore[K, V, C]): Task[C] =
         ref.modifyS(toST(fa).run)
     }

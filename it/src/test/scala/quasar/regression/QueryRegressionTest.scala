@@ -30,6 +30,7 @@ import scala.util.matching.Regex
 
 import argonaut._, Argonaut._
 import org.specs2.execute._
+import org.specs2.specification.core.Fragment
 import pathy.Path, Path._
 import scalaz._, Scalaz._
 import scalaz.concurrent.Task
@@ -101,7 +102,7 @@ abstract class QueryRegressionTest[S[_]: Functor](
     test: RegressionTest,
     backendName: BackendName,
     run: Run
-  ) = {
+  ): Fragment = {
     def runTest = (for {
       _    <- Task.delay(println(test.query))
       _    <- run(test.data.traverse[F,Result](
