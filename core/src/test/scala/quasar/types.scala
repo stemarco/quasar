@@ -23,7 +23,6 @@ import quasar.specs2._
 import scala.Right
 
 import argonaut._, Argonaut._
-import argonaut.JsonScalaz._
 import org.specs2.mutable._
 import org.specs2.ScalaCheck
 

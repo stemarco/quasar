@@ -211,7 +211,7 @@ trait StringLib extends Library {
       case Type.Const(Data.Str("false")) :: Nil =>
         success(Type.Const(Data.Bool(false)))
       case Type.Const(Data.Str(str))     :: Nil =>
-        failure(nel(InvalidStringCoercion(str, List("true", "false").right), Nil))
+        failureNel(InvalidStringCoercion(str, List("true", "false").right))
       case Type.Str                      :: Nil => success(Type.Bool)
     },
     untyper(x => ToString(List(x)).map(List(_))))
@@ -230,7 +230,7 @@ trait StringLib extends Library {
     partialTyperV {
       case Type.Const(Data.Str(str))   :: Nil =>
         str.parseInt.fold(
-          κ(failure(nel(InvalidStringCoercion(str, "a string containing an integer".left), Nil))),
+          κ(failureNel(InvalidStringCoercion(str, "a string containing an integer".left))),
           i => success(Type.Const(Data.Int(i))))
       case Type.Str                    :: Nil => success(Type.Int)
     },
@@ -244,7 +244,7 @@ trait StringLib extends Library {
     partialTyperV {
       case Type.Const(Data.Str(str))   :: Nil =>
         str.parseDouble.fold(
-          κ(failure(nel(InvalidStringCoercion(str, "a string containing an decimal number".left), Nil))),
+          κ(failureNel(InvalidStringCoercion(str, "a string containing an decimal number".left))),
           i => success(Type.Const(Data.Dec(i))))
       case Type.Str                    :: Nil => success(Type.Int)
     },
@@ -258,7 +258,7 @@ trait StringLib extends Library {
     partialTyperV {
       case Type.Const(Data.Str("null"))  :: Nil => success(Type.Const(Data.Null))
       case Type.Const(Data.Str(str))     :: Nil =>
-        failure(nel(InvalidStringCoercion(str, List("null").right), Nil))
+        failureNel(InvalidStringCoercion(str, List("null").right))
       case Type.Str                      :: Nil => success(Type.Null)
     },
     untyper(x => ToString(List(x)).map(List(_))))
@@ -281,12 +281,11 @@ trait StringLib extends Library {
         case Data.Interval(i)  => success(i.toString)
         // NB: Should not be able to hit this case, because of the domain.
         case other             =>
-          failure(nel(
+          failureNel(
             TypeError(
               Type.Syntaxed,
               other.dataType,
-              "can not convert aggregate types to String".some),
-            Nil))
+              "can not convert aggregate types to String".some):SemanticError)
       }).map(s => Type.Const(Data.Str(s)))
       case List(_) => success(Type.Str)
     },
