@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,18 @@ package quasar.contrib
 
 import quasar.ejson
 import quasar.RenderTree
+import quasar.contrib.iota.copkTraverse
 
 import scala.collection.immutable.ListMap
 
 import _root_.argonaut._, Argonaut._
 import _root_.matryoshka._
 import _root_.scalaz._
+import iotaz.CopK
 
 package object argonaut {
-  private val CJ = Inject[ejson.Common, ejson.Json]
-  private val OJ = Inject[ejson.Obj,    ejson.Json]
+  private val CJ = CopK.Inject[ejson.Common, ejson.Json]
+  private val OJ = CopK.Inject[ejson.Obj,    ejson.Json]
 
   implicit def jsonRecursive: Recursive.Aux[Json, ejson.Json] =
     new Recursive[Json] {
@@ -54,7 +56,7 @@ package object argonaut {
           case CJ(ejson.Dec(d))  => jNumber(d)
           case CJ(ejson.Str(s))  => jString(s)
           case CJ(ejson.Arr(a))  => jArray(a)
-          case OJ(ejson.Obj(o))  => jObject(JsonObject.fromTraversableOnce(o))
+          case OJ(ejson.Obj(o))  => jObject(JsonObject.fromIterable(o))
         }
     }
 

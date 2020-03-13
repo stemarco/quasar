@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package quasar.ejson
 
 import slamdata.Predef._
+import quasar.contrib.iota.copkTraverse
 
 import matryoshka._
 import scalaz.std.option._

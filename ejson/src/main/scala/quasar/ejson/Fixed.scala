@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package quasar.ejson
 
-import slamdata.Predef.{Byte => SByte, Char => SChar, Int => _, Map => _, _}
+import slamdata.Predef.{Char => SChar, Int => _, Map => _, _}
 import quasar.contrib.matryoshka.birecursiveIso
 import quasar.ejson.implicits._
+import quasar.contrib.iota.copkTraverse
 
 import matryoshka._
 import monocle.Prism
@@ -32,9 +33,6 @@ final class Fixed[J] private ()(implicit JC: Corecursive.Aux[J, EJson], JR: Recu
 
   val bool: Prism[J, Boolean] =
     iso composePrism optics.bool
-
-  val byte: Prism[J, SByte] =
-    iso composePrism optics.byte
 
   val char: Prism[J, SChar] =
     iso composePrism optics.char

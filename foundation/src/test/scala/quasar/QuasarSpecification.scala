@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package quasar
 
-import scala._
 import java.lang.String
-import scalaz._
+import scala._
+
 import org.specs2.main.ArgProperty
 import org.specs2.execute._
-import quasar.build.BuildInfo._
+import scalaz._
 
 /** Use Qspec if you can, QuasarSpecification only if you must.
  *  An abstract class allows the many trait forwarders to be reused
@@ -37,9 +37,11 @@ trait QuasarSpecification extends AnyRef
         with org.specs2.matcher.MatchResultCombinators
         with org.specs2.matcher.ValueChecks
         with org.specs2.matcher.MatcherZipOperators
+        with org.specs2.matcher.DisjunctionMatchers
+        with org.specs2.matcher.ValidationMatchers
         with org.specs2.execute.PendingUntilFixed
         with org.specs2.ScalaCheck
-        with org.specs2.scalaz.ScalazMatchers
+        with quasar.contrib.specs2.ScalazEqualityMatchers
         with ScalazSpecs2Instances
 {
   outer =>
@@ -51,6 +53,7 @@ trait QuasarSpecification extends AnyRef
 
   implicit class Specs2ScalazOps[A : Equal : Show](lhs: A) {
     def must_=(rhs: A) = lhs must equal(rhs)
+    def must_!=(rhs: A) = lhs must not(equal(rhs))
   }
 
   /** Allows marking non-deterministically failing tests as such,
@@ -71,26 +74,8 @@ trait QuasarSpecification extends AnyRef
   implicit class QuasarOpsForAsResultable[T: AsResult](t: => T) {
     /** Steps in front of the standard specs2 implicit. */
     def pendingUntilFixed: Result = pendingUntilFixed("")
+
     def pendingUntilFixed(m: String): Result =
-      if (coverageEnabled)
-        Skipped(m + " (pending example skipped during coverage run)")
-      else outer.toPendingUntilFixed(t).pendingUntilFixed(m)
-
-    def skippedOnUserEnv: Result            = skippedOnUserEnv("")
-    def skippedOnUserEnv(m: String): Result = if (isIsolatedEnv) AsResult(t) else Skipped(m)
+      outer.toPendingUntilFixed(t).pendingUntilFixed(m)
   }
-}
-
-/** Trait that tags all examples in a spec for exclusive execution. Examples
-  * will be executed sequentially and parallel execution will be disabled.
-  *
-  * Use this when you have tests that muck with global state.
-  */
-trait ExclusiveQuasarSpecification extends QuasarSpecification {
-  import org.specs2.specification.core.Fragments
-  import org.specs2.specification.dsl.FragmentsDsl._
-
-  sequential
-  override def map(fs: => Fragments) =
-    section(exclusiveTestTag) ^ super.map(fs) ^ section(exclusiveTestTag)
 }

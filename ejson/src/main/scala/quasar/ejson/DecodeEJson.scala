@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package quasar.ejson
 
-import slamdata.Predef.{Int => SInt, Char => SChar, Byte => SByte, _}
+import slamdata.Predef.{Int => SInt, Char => SChar, _}
 import quasar.RenderedTree
 import quasar.contrib.argonaut._
 import quasar.ejson.implicits._
+import quasar.contrib.iota.copkTraverse
 
 import argonaut.{DecodeJson, Json => AJson}
 import matryoshka._
 import matryoshka.implicits._
 import scalaz._
+import scalaz.std.anyVal._
 import scalaz.std.list._
 import scalaz.std.option._
+import scalaz.syntax.equal._
 import scalaz.syntax.traverse._
 import scalaz.syntax.std.boolean._
 import scalaz.syntax.std.either._
@@ -120,16 +123,13 @@ sealed abstract class DecodeEJsonInstances extends DecodeEJsonInstances0 {
   implicit val shortDecodeEJson: DecodeEJson[Short] =
     bigIntDecodeEJson.reinterpret("Short", bi => bi.isValidShort option bi.shortValue)
 
-  implicit val byteDecodeEJson: DecodeEJson[SByte] =
-    new DecodeEJson[SByte] {
-      def decode[J](j: J)(implicit JC: Corecursive.Aux[J, EJson], JR: Recursive.Aux[J, EJson]): Decoded[SByte] =
-        Decoded.attempt(j, Fixed[J].byte.getOption(j) \/> "Byte")
-    }
-
   implicit val charDecodeEJson: DecodeEJson[SChar] =
     new DecodeEJson[SChar] {
-      def decode[J](j: J)(implicit JC: Corecursive.Aux[J, EJson], JR: Recursive.Aux[J, EJson]): Decoded[SChar] =
-        Decoded.attempt(j, Fixed[J].char.getOption(j) \/> "Char")
+      def decode[J](j: J)(implicit JC: Corecursive.Aux[J, EJson], JR: Recursive.Aux[J, EJson]): Decoded[SChar] = {
+        val fromChar = Fixed[J].char.getOption(j)
+        def fromStr = Fixed[J].str.getOption(j).filter(_.length ≟ 1).map(_(0))
+        Decoded.attempt(j, (fromChar orElse fromStr) \/> "Char")
+      }
     }
 
   implicit def optionDecodeEJson[A](implicit A: DecodeEJson[A]): DecodeEJson[Option[A]] =

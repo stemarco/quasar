@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package quasar.fp
 
 import slamdata.Predef._
+import quasar.contrib.iota.{:<<:, ACopK}
 import matryoshka._
 import matryoshka.patterns.CoEnv
 import monocle.Prism
@@ -47,6 +48,9 @@ object PrismNT {
 
   def inject[F[_], G[_]](implicit I: F :<: G): PrismNT[G, F] =
     PrismNT(λ[G ~> (Option ∘ F)#λ](I.prj(_)), λ[F ~> G](I.inj(_)))
+
+  def injectCopK[F[_], G[a] <: ACopK[a]](implicit I: F :<<: G): PrismNT[G, F] =
+    PrismNT(I.prj, I.inj)
 
   def coEnv[F[_], A]: PrismNT[CoEnv[A, F, ?], F] =
     PrismNT(

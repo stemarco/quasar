@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import quasar.fp._
 import quasar.fp.ski._
 
 import argonaut._, Argonaut._
-import matryoshka._
 import scalaz._, Scalaz._
+
+import scala.Stream
 
 final case class RenderedTree(nodeType: List[String], label: Option[String], children: List[RenderedTree]) {
   def simpleType: Option[String] = nodeType.headOption

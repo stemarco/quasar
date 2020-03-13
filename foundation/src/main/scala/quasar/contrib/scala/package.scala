@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,10 @@ import quasar.fp.ski._
 import _root_.scalaz._, Scalaz._
 
 package object std {
+
+  def errorImpossible: Nothing = scala.sys.error("impossible")
+  def errorNotImplemented: Nothing = scala.sys.error("not implemented")
+
   implicit class AugmentedList[A](val a: List[A]) extends scala.AnyVal {
     def duplicates: List[NonEmptyList[A]] = {
       a.groupBy1(ι).values.filter(_.size > 1).toList

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package quasar.ejson
 
-import slamdata.Predef.{Byte => SByte, Char => SChar, Int => _, Map => _, _}
+import slamdata.Predef.{Char => SChar, Int => _, Map => _, _}
 import quasar.fp.PrismNT
 
 import monocle.Prism
@@ -27,19 +27,16 @@ object optics {
   import Extension.{Optics => EO}
 
   def com[A]: Prism[EJson[A], Common[A]] =
-    PrismNT.inject[Common, EJson].asPrism[A]
+    PrismNT.injectCopK[Common, EJson].asPrism[A]
 
   def ext[A]: Prism[EJson[A], Extension[A]] =
-    PrismNT.inject[Extension, EJson].asPrism[A]
+    PrismNT.injectCopK[Extension, EJson].asPrism[A]
 
   def arr[A]: Prism[EJson[A], List[A]] =
     com composePrism CO.arr
 
   def bool[A]: Prism[EJson[A], Boolean] =
     com composePrism CO.bool
-
-  def byte[A]: Prism[EJson[A], SByte] =
-    ext composePrism EO.byte
 
   def char[A]: Prism[EJson[A], SChar] =
     ext composePrism EO.char

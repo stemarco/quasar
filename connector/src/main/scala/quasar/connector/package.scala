@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,57 @@
 
 package quasar
 
-import quasar.common.PhaseResultW
-import quasar.effect.Failure
-import quasar.frontend.SemanticErrsT
+import slamdata.Predef._
 
-import scalaz._
+import quasar.api.Column
+import quasar.contrib.scalaz.MonadError_
+
+import java.time.OffsetDateTime
+
+import cats.Id
+import cats.data.Const
+
+import skolems.∃
 
 package object connector {
-  type CompileM[A] = SemanticErrsT[PhaseResultW, A]
+  type ByteStore[F[_]] = Store[F, String, Array[Byte]]
 
-  type EnvErr[A] = Failure[EnvironmentError, A]
-  type EnvErrT[F[_], A] = EitherT[F, EnvironmentError, A]
+  type Offset = Column[∃[ActualKey]]
 
-  type PlannerErrT[F[_], A] = EitherT[F, Planner.PlannerError, A]
+  type MonadResourceErr[F[_]] = MonadError_[F, ResourceError]
+
+  def MonadResourceErr[F[_]](implicit ev: MonadResourceErr[F])
+      : MonadResourceErr[F] = ev
+
+  type ActualKey[A] = Key[Id, A]
+
+  object ActualKey {
+    def double(k: Double): ActualKey[Double] =
+      Key.DoubleKey[Id](k)
+
+    def long(k: Long): ActualKey[Long] =
+      Key.LongKey[Id](k)
+
+    def string(k: String): ActualKey[String] =
+      Key.StringKey[Id](k)
+
+    def dateTime(k: OffsetDateTime): ActualKey[OffsetDateTime] =
+      Key.DateTimeKey[Id](k)
+  }
+
+  type TypedKey[T, A] = Key[Const[T, ?], A]
+
+  object TypedKey {
+    def double[T](t: T): TypedKey[T, Double] =
+      Key.DoubleKey(Const(t))
+
+    def long[T](t: T): TypedKey[T, Long] =
+      Key.LongKey(Const(t))
+
+    def string[T](t: T): TypedKey[T, String] =
+      Key.StringKey(Const(t))
+
+    def dateTime[T](t: T): TypedKey[T, OffsetDateTime] =
+      Key.DateTimeKey(Const(t))
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import slamdata.Predef._
 import org.scalacheck.{Arbitrary, Gen, Shrink}
 import pathy.Path._
 import pathy.scalacheck.PathyArbitrary._
+
+import scala.Stream
 
 trait PathArbitrary {
 

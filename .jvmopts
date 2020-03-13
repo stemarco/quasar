@@ -1,6 +1,8 @@
 -Xms512m
--Xmx4g
--Xss2m
+-Xmx3g
+-Xss4m
 -XX:+UseG1GC
+-XX:+UseStringDeduplication
 -XX:ParallelGCThreads=2
 -XX:ConcGCThreads=1
+-XX:ReservedCodeCacheSize=512m

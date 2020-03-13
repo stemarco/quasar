@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,21 @@
 
 package quasar.ejson
 
-import slamdata.Predef.{Byte => SByte, Char => SChar, Int => _, Map => _, _}
+import slamdata.Predef.{Char => SChar, Int => _, Map => _, _}
 import quasar.contrib.matryoshka.{project, totally}
+import quasar.contrib.iota.copkTraverse
 
 import matryoshka._
 import matryoshka.implicits._
-import scalaz.Coproduct
 import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.syntax.traverse._
 
 object EJson {
-  def fromJson[A](f: String => A): Json[A] => EJson[A] =
-    json => Coproduct(json.run.leftMap(Extension.fromObj(f)))
+  def fromJson[A](f: String => A): Json[A] => EJson[A] = {
+    case ObjJson(obj) => ExtEJson(Extension.fromObj(f)(obj))
+    case CommonJson(c) => CommonEJson(c)
+  }
 
   def fromCommon[T](c: Common[T])(implicit T: Corecursive.Aux[T, EJson]): T =
     CommonEJson(c).embed
@@ -41,15 +43,18 @@ object EJson {
       case Map(xs) =>
         xs.traverse {
           case (k, v) => f(k) strengthR v
-        } map (kvs => Coproduct.leftc(Obj(ListMap(kvs : _*))))
+        } map (kvs => ObjJson(Obj(ListMap(kvs : _*))))
 
       case Int(i) =>
-        some(Coproduct.rightc(Dec(BigDecimal(i))))
+        some(CommonJson(Dec(BigDecimal(i))))
 
       case _ => none
     }
 
-    _.run.bitraverse(handleExt, c => some(Coproduct.right[Obj](c))) map (_.merge)
+    {
+      case ExtEJson(ext) => handleExt(ext)
+      case CommonEJson(c) => some(CommonJson(c))
+    }
   }
 
   def arr[T](xs: T*)(implicit T: Corecursive.Aux[T, EJson]): T =
@@ -57,9 +62,6 @@ object EJson {
 
   def bool[T](b: Boolean)(implicit T: Corecursive.Aux[T, EJson]): T =
     fromCommon(Bool(b))
-
-  def byte[T](b: SByte)(implicit T: Corecursive.Aux[T, EJson]): T =
-    fromExt(Byte(b))
 
   def char[T](c: SChar)(implicit T: Corecursive.Aux[T, EJson]): T =
     fromExt(Char(c))
@@ -93,25 +95,5 @@ object EJson {
     implicit T: Recursive.Aux[T, EJson]
   ): EJson[T] => EJson[T] = totally {
     case ExtEJson(Meta(v, _)) => v.project
-  }
-
-  /** Replace a string with an array of characters. */
-  def replaceString[T](
-    implicit T: Corecursive.Aux[T, EJson]
-  ): EJson[T] => EJson[T] = totally {
-    case CommonEJson(Str(s)) =>
-      optics.arr[T](s.toList map (c => char[T](c)))
-  }
-
-  /** Replace an array of characters with a string. */
-  def restoreString[T](
-    implicit
-    TC: Corecursive.Aux[T, EJson],
-    TR: Recursive.Aux[T, EJson]
-  ): EJson[T] => EJson[T] = totally {
-    case a @ CommonEJson(Arr(t :: ts)) =>
-      (t :: ts)
-        .traverse(Fixed[T].char.getOption)
-        .fold(a)(cs => optics.str[T](cs.mkString))
   }
 }

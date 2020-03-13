@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package quasar.ejson
 
 import slamdata.Predef._
 import quasar.contrib.matryoshka.{project => projectg, _}
+import quasar.contrib.iota.{copkTraverse, copkOrder}
+
+import qdata.{QDataDecode, QDataEncode}
 
 import matryoshka._
 import matryoshka.implicits._
@@ -41,6 +44,12 @@ object implicits {
         x.transCata[T](EJson.elideMetadata[T]),
         y.transCata[T](EJson.elideMetadata[T]))
     }
+
+  implicit def ejsonQDataDecode[J](implicit T: Recursive.Aux[J, EJson]): QDataDecode[J] =
+    QDataEJson.decode[J]
+
+  implicit def ejsonQDataEncode[J](implicit T: Corecursive.Aux[J, EJson]): QDataEncode[J] =
+    QDataEJson.encode[J]
 
   implicit final class EJsonOps[J](val j: J) extends scala.AnyVal {
     def array(implicit JR: Recursive.Aux[J, EJson]): Option[List[J]] =

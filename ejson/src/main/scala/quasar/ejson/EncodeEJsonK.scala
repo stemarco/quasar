@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package quasar.ejson
 
 import slamdata.Predef._
 import quasar.ejson.implicits._
+import quasar.contrib.iota.copkTraverse
 
+import iotaz.{CopK, TListK}
 import matryoshka._
 import matryoshka.implicits._
 import matryoshka.patterns.EnvT
@@ -64,12 +66,17 @@ sealed abstract class EncodeEJsonKInstances {
     }
 
   implicit def coproductEncodeEJsonK[F[_], G[_]](
-    implicit
-    F: EncodeEJsonK[F],
-    G: EncodeEJsonK[G]
-  ): EncodeEJsonK[Coproduct[F, G, ?]] =
+      implicit
+      F: EncodeEJsonK[F],
+      G: EncodeEJsonK[G])
+      : EncodeEJsonK[Coproduct[F, G, ?]] =
     new EncodeEJsonK[Coproduct[F, G, ?]] {
       def encodeK[J](implicit JC: Corecursive.Aux[J, EJson], JR: Recursive.Aux[J, EJson]): Algebra[Coproduct[F, G, ?], J] =
         _.run.fold(F.encodeK[J], G.encodeK[J])
     }
+
+  implicit def copkEncodeEJsonK[LL <: TListK](
+      implicit M: EncodeEJsonKMaterializer[LL])
+      : EncodeEJsonK[CopK[LL, ?]] =
+    M.materialize(offset = 0)
 }

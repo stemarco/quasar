@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ package quasar.frontend.logicalplan
 import slamdata.Predef._
 import quasar._, RenderTree.ops._
 import quasar.common.{JoinType, SortDir}
+import quasar.common.data.Data
 import quasar.contrib.pathy.{FPath, refineTypeAbs}
 import quasar.contrib.shapeless._
 import quasar.fp._
 import quasar.fp.binder._
-import quasar.std.TemporalPart
+import quasar.time.TemporalPart
 
 import scala.Symbol
 import scala.Predef.$conforms
@@ -69,13 +70,6 @@ final case class Sort[A](src: A, order: NonEmptyList[(A, SortDir)])
 
 final case class TemporalTrunc[A](part: TemporalPart, src: A) extends LogicalPlan[A]
 
-// NB: This should only be inserted by the type checker. In future, this
-//     should only exist in BlackShield – the checker will annotate nodes
-//     where runtime checks are necessary, then they will be added during
-//     compilation to BlackShield.
-final case class Typecheck[A](expr: A, typ: Type, cont: A, fallback: A)
-    extends LogicalPlan[A]
-
 object LogicalPlan {
   import quasar.std.StdLib._
 
@@ -98,8 +92,6 @@ object LogicalPlan {
           case Sort(src, ords)          =>
             (f(src) ⊛ ords.traverse { case (a, d) => f(a) strengthR d })(Sort(_, _))
           case TemporalTrunc(part, src) => f(src) ∘ (TemporalTrunc(part, _))
-          case Typecheck(expr, typ, cont, fallback) =>
-            (f(expr) ⊛ f(cont) ⊛ f(fallback))(Typecheck(_, typ, _, _))
         }
 
       override def map[A, B](v: LogicalPlan[A])(f: A => B): LogicalPlan[B] =
@@ -114,8 +106,6 @@ object LogicalPlan {
           case Let(ident, form, in)     => Let(ident, f(form), f(in))
           case Sort(src, ords)          => Sort(f(src), ords map (f.first))
           case TemporalTrunc(part, src) => TemporalTrunc(part, f(src))
-          case Typecheck(expr, typ, cont, fallback) =>
-            Typecheck(f(expr), typ, f(cont), f(fallback))
         }
 
       override def foldMap[A, B](fa: LogicalPlan[A])(f: A => B)(implicit B: Monoid[B]): B =
@@ -130,8 +120,6 @@ object LogicalPlan {
           case Let(_, form, in)      => f(form) ⊹ f(in)
           case Sort(src, ords)       => f(src) ⊹ ords.foldMap { case (a, _) => f(a) }
           case TemporalTrunc(_, src) => f(src)
-          case Typecheck(expr, _, cont, fallback) =>
-            f(expr) ⊹ f(cont) ⊹ f(fallback)
         }
 
       override def foldRight[A, B](fa: LogicalPlan[A], z: => B)(f: (A, => B) => B): B =
@@ -146,8 +134,6 @@ object LogicalPlan {
           case Let(ident, form, in)  => f(form, f(in, z))
           case Sort(src, ords)       => f(src, ords.foldRight(z) { case ((a, _), b) => f(a, b) })
           case TemporalTrunc(_, src) => f(src, z)
-          case Typecheck(expr, _, cont, fallback) =>
-            f(expr, f(cont, f(fallback, z)))
         }
     }
 
@@ -155,37 +141,34 @@ object LogicalPlan {
     new Delay[Show, LogicalPlan] {
       def apply[A](sa: Show[A]): Show[LogicalPlan[A]] = {
         implicit val showA: Show[A] = sa
-        Show.show {
+        Show.shows {
           case Read(v) =>
-            Cord("Read(") ++ v.show ++ Cord(")")
+            "Read(" + v.shows + ")"
           case Constant(v) =>
-            Cord("Constant(") ++ v.show ++ Cord(")")
+            "Constant(" + v.shows + ")"
           case Invoke(func, values) =>
             // TODO remove trailing comma
-            func.show ++ Cord("(") ++
-            values.foldLeft(Cord("")){ case (acc, v) => acc ++ sa.show(v) ++ Cord(", ") } ++ Cord(")")
+            func.shows + "(" +
+            values.foldLeft("") { case (acc, v) => acc + sa.shows(v) + ", " } + ")"
           case JoinSideName(n) =>
-            Cord("JoinSideName(") ++ Cord(n.toString) ++ Cord(")")
+            "JoinSideName(" + n.toString + ")"
           case Join(l, r, tpe, JoinCondition(lName, rName, v)) =>
-            Cord("Join(") ++
-            l.show ++ Cord(", ") ++
-            r.show ++ Cord(", ") ++
-            tpe.show ++ Cord(", ") ++
-            Cord(lName.toString) ++ Cord(", ") ++
-            Cord(rName.toString) ++ Cord(", ") ++
-            v.show ++ Cord(")")
+            "Join(" +
+            l.shows + ", " +
+            r.shows + ", " +
+            tpe.shows + ", " +
+            lName.toString + ", " +
+            rName.toString + ", " +
+            v.shows + ")"
           case Free(n) =>
-            Cord("Free(") ++ Cord(n.toString) ++ Cord(")")
+            "Free(" + n.toString + ")"
           case Let(n, f, b) =>
-            Cord("Let(") ++ Cord(n.toString) ++ Cord(",") ++
-            sa.show(f) ++ Cord(",") ++ sa.show(b) ++ Cord(")")
+            "Let(" + n.toString + "," +
+            sa.shows(f) + "," + sa.shows(b) + ")"
           case Sort(src, ords) =>
-            Cord("Sort(") ++ sa.show(src) ++ Cord(", ") ++ ords.show ++ Cord(")")
+            "Sort(" + sa.shows(src) + ", " + ords.shows + ")"
           case TemporalTrunc(part, src) =>
-            Cord("TemporalTrunc(") ++ part.show ++ Cord(",") ++ sa.show(src) ++ Cord(")")
-          case Typecheck(e, t, c, f) =>
-            Cord("Typecheck(") ++ sa.show(e) ++ Cord(",") ++ t.show ++ Cord(",") ++
-            sa.show(c) ++ Cord(",") ++ sa.show(f) ++ Cord(")")
+            "TemporalTrunc(" + part.shows + "," + sa.shows(src) + ")"
         }
       }
     }
@@ -227,9 +210,6 @@ object LogicalPlan {
                 }).toList)
             case TemporalTrunc(part, src) =>
               NonTerminal("TemporalTrunc" :: nodeType, Some(part.shows), List(ra.render(src)))
-            case Typecheck(expr, typ, cont, fallback) =>
-              NonTerminal("Typecheck" :: nodeType, Some(typ.shows),
-                List(ra.render(expr), ra.render(cont), ra.render(fallback)))
           }
         }
     }
@@ -252,8 +232,6 @@ object LogicalPlan {
           case (Sort(s1, o1), Sort(s2, o2)) => s1 ≟ s2 && o1 ≟ o2
           case (TemporalTrunc(part1, src1), TemporalTrunc(part2, src2)) =>
             part1 ≟ part2 && src1 ≟ src2
-          case (Typecheck(expr1, typ1, cont1, fb1), Typecheck(expr2, typ2, cont2, fb2)) =>
-            expr1 ≟ expr2 && typ1 ≟ typ2 && cont1 ≟ cont2 && fb1 ≟ fb2
           case _ => false
         }
       }

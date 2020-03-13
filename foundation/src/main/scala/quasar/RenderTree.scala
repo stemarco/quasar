@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package quasar
 
 import slamdata.Predef._
-import quasar.RenderTree.make
-import quasar.RenderTree.ops._
 import quasar.fp._
 
 import matryoshka._
@@ -26,6 +24,7 @@ import matryoshka.data._
 import matryoshka.implicits._
 import scalaz._, Scalaz._
 import simulacrum.typeclass
+import iotaz.{CopK, TListK}
 
 @typeclass trait RenderTree[A] {
   def render(a: A): RenderedTree
@@ -33,6 +32,11 @@ import simulacrum.typeclass
 
 @SuppressWarnings(Array("org.wartremover.warts.ImplicitConversion"))
 object RenderTree extends RenderTreeInstances {
+  import ops._
+
+  def contramap[A, B: RenderTree](f: A => B): RenderTree[A] =
+    new RenderTree[A] { def render(v: A) = RenderTree[B].render(f(v)) }
+
   def make[A](f: A => RenderedTree): RenderTree[A] =
     new RenderTree[A] { def render(v: A) = f(v) }
 
@@ -70,6 +74,9 @@ object RenderTree extends RenderTreeInstances {
 }
 
 sealed abstract class RenderTreeInstances extends RenderTreeInstances0 {
+  import RenderTree.make
+  import RenderTree.ops._
+
   implicit def const[A: RenderTree]: Delay[RenderTree, Const[A, ?]] =
     Delay.fromNT(λ[RenderTree ~> DelayedA[A]#RenderTree](_ =>
       make(_.getConst.render)))
@@ -103,6 +110,8 @@ sealed abstract class RenderTreeInstances extends RenderTreeInstances0 {
   implicit def renderTreeT[T[_[_]], F[_]: Functor](implicit T: RenderTreeT[T], F: Delay[RenderTree, F]): RenderTree[T[F]] =
     T.renderTree(F)
 
+  implicit def copKRenderTree[LL <: TListK](implicit M: RenderTreeKMaterializer[LL]): Delay[RenderTree, CopK[LL, ?]] = M.materialize(offset = 0)
+
   implicit def coproductDelay[F[_], G[_]](implicit RF: Delay[RenderTree, F], RG: Delay[RenderTree, G]): Delay[RenderTree, Coproduct[F, G, ?]] =
     Delay.fromNT(λ[RenderTree ~> DelayedFG[F, G]#RenderTree](ra =>
       make(_.run.fold(RF(ra).render, RG(ra).render))))
@@ -123,10 +132,7 @@ sealed abstract class RenderTreeInstances extends RenderTreeInstances0 {
     make(v => NonTerminal(List("List"), None, v.map(RA.render)))
 
   implicit def listMapRenderTree[K: Show, V](implicit RV: RenderTree[V]): RenderTree[ListMap[K, V]] =
-    make(v => NonTerminal("Map" :: Nil, None,
-      v.toList.map { case (k, v) =>
-        NonTerminal("Key" :: "Map" :: Nil, Some(k.shows), RV.render(v) :: Nil)
-      }))
+    make(RenderTree[Map[K, V]].render(_))
 
   implicit def vectorRenderTree[A](implicit RA: RenderTree[A]): RenderTree[Vector[A]] =
     make(v => NonTerminal(List("Vector"), None, v.map(RA.render).toList))
@@ -177,6 +183,12 @@ sealed abstract class RenderTreeInstances0 extends RenderTreeInstances1 {
           Nil)
     }
 
+  implicit def mapRenderTree[K: Show, V](implicit RV: RenderTree[V]): RenderTree[Map[K, V]] =
+    RenderTree.make(v => NonTerminal("Map" :: Nil, None,
+      v.toList.map { case (k, v) =>
+        NonTerminal("Key" :: "Map" :: Nil, Some(k.shows), RV.render(v) :: Nil)
+      }))
+
   implicit def fix[F[_]: Functor](implicit F: Delay[RenderTree, F]): RenderTree[Fix[F]] =
     RenderTree.recursive
 
@@ -188,6 +200,8 @@ sealed abstract class RenderTreeInstances0 extends RenderTreeInstances1 {
 }
 
 sealed abstract class RenderTreeInstances1 {
+  import RenderTree.make
+
   implicit def tuple2RenderTree[A, B](
     implicit RA: RenderTree[A], RB: RenderTree[B]
   ): RenderTree[(A, B)] =

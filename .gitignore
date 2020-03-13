@@ -12,7 +12,21 @@ tmp
 .settings
 *.sw*
 tags
+.envrc
 docker/Dockerfiles/Marklogic/MarkLogic.rpm
 docker/Dockerfiles/Spark/scala*.tgz
 docker/Dockerfiles/Spark/spark*.tgz
 docker/Dockerfiles/Hadoop/hadoop*.tar.gz
+
+# sbt-slamdata common resources
+/scripts/checkAndAutoMerge
+/scripts/commonSetup
+/scripts/discordTravisPost
+/scripts/isRevision
+/scripts/listLabels
+/scripts/closePR
+/pgppassphrase.sbt.enc
+/scripts/publishAndTag
+/pubring.pgp.enc
+/scripts/readVersion
+/secring.pgp.enc

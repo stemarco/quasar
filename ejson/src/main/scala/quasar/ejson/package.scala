@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package quasar
 
-import scalaz.{Coproduct, Inject}
+import iotaz.TListK.:::
+import iotaz.{ CopK, TNilK }
 
 package object ejson {
 
   /** For _strict_ JSON, you want something like `Obj[Mu[Json]]`.
     */
-  type Json[A]    = Coproduct[Obj, Common, A]
-  val ObjJson     = Inject[Obj, Json]
-  val CommonJson  = Inject[Common, Json]
+  type Json[A]    = CopK[Obj ::: Common ::: TNilK, A]
+  val ObjJson     = CopK.Inject[Obj, Json]
+  val CommonJson  = CopK.Inject[Common, Json]
 
-  type EJson[A]   = Coproduct[Extension, Common, A]
-  val ExtEJson    = Inject[Extension, EJson]
-  val CommonEJson = Inject[Common, EJson]
+  type EJsonL     = Extension ::: Common ::: TNilK
+  type EJson[A]   = CopK[EJsonL, A]
+  val ExtEJson    = CopK.Inject[Extension, EJson]
+  val CommonEJson = CopK.Inject[Common, EJson]
 }

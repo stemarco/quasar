@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,13 @@ import scalaz.std.string._
 final case class TypeTag(value: String) extends scala.AnyVal
 
 object TypeTag {
-  val Binary    = TypeTag("_ejson.binary")
-  val Date      = TypeTag("_ejson.date")
-  val Interval  = TypeTag("_ejson.interval")
-  val Time      = TypeTag("_ejson.time")
-  val Timestamp = TypeTag("_ejson.timestamp")
+  val Interval       = TypeTag("_ejson.interval")
+  val OffsetDateTime = TypeTag("_ejson.offsetdatetime")
+  val OffsetTime     = TypeTag("_ejson.offsettime")
+  val OffsetDate     = TypeTag("_ejson.offsetdate")
+  val LocalDateTime  = TypeTag("_ejson.localdatetime")
+  val LocalTime      = TypeTag("_ejson.localtime")
+  val LocalDate      = TypeTag("_ejson.localdate")
 
   val stringIso: Iso[TypeTag, String] =
     Iso[TypeTag, String](_.value)(TypeTag(_))

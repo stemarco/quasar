@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,20 @@
 package quasar.frontend.logicalplan
 
 import slamdata.Predef._
-import quasar.{Data, Func}
-import quasar.DataArbitrary._
+import quasar.Func
+import quasar.common.data._, DataGenerators._
+import quasar.contrib.specs2.Spec
 import quasar.fp._
 import quasar.std
 
 import matryoshka._
 import matryoshka.data.Fix
 import org.scalacheck._
-import org.specs2.scalaz.{ScalazMatchers, Spec}
 import scalaz._, Scalaz._
 import scalaz.scalacheck.ScalazProperties.{equal => _, _}
 import pathy.Path._
 
-class LogicalPlanSpecs extends Spec with ScalazMatchers {
+class LogicalPlanSpecs extends Spec {
   val lpf = new LogicalPlanR[Fix[LogicalPlan]]
 
   implicit val arbLogicalPlan: Delay[Arbitrary, LogicalPlan] =

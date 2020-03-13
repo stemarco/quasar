@@ -1,9 +1,0 @@
-{
-    "name": "double flatten with intervening field",
-    "backends": {},
-    "data": "nested.data",
-    "query": "select topObj{*}.botObj{*} from nested",
-    "predicate": "exactly",
-    "ignoreResultOrder": true,
-    "expected": ["m", "n", "o"]
-}

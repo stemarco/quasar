@@ -1,5 +1,5 @@
 /*
- * Copyright 2014–2018 SlamData Inc.
+ * Copyright 2020 Precog Data
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * where threadNo is an integer starting from one.
  */
 final case class NamedDaemonThreadFactory(name: String) extends ThreadFactory {
-  val threadNo = new AtomicInteger()
+  val threadNo = new AtomicInteger(0)
   val backingThreadFactory = Executors.defaultThreadFactory()
 
   def newThread(r: java.lang.Runnable) = {
